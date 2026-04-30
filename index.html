@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OT ManagerRV</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;font-size:14px}
+.app{max-width:980px;margin:0 auto;padding:24px 16px}
+.app-header{display:flex;align-items:baseline;gap:10px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e0e0e0}
+.app-title{font-size:20px;font-weight:600;color:#1a1a1a}
+.app-sub{font-size:12px;color:#666}
+.tabs{display:flex;border-bottom:1px solid #e0e0e0;margin-bottom:24px}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;transition:all 0.15s}
+.tab.active{color:#1a1a1a;border-bottom:2px solid #1a1a1a;font-weight:500}
+.tab:hover:not(.active){color:#1a1a1a}
+.panel{display:none}.panel.active{display:block}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:16px}
+label{font-size:13px;color:#555;display:block;margin-bottom:4px}
+input[type=text],input[type=password],select{width:100%;margin-bottom:12px;padding:8px 10px;border:1px solid #d0d0d0;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a}
+input[type=text]:focus,input[type=password]:focus,select:focus{outline:none;border-color:#1a1a1a}
+.btn{padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #d0d0d0;background:#fff;color:#1a1a1a;transition:all 0.15s}
+.btn:hover{background:#f0f0f0}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-danger{border-color:#e53e3e;color:#e53e3e}
+.btn-danger:hover{background:#fff5f5}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.alert{padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px}
+.alert-warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.alert-err{background:#fff5f5;color:#c53030;border:1px solid #fed7d7}
+.alert-ok{background:#f0fff4;color:#276749;border:1px solid #9ae6b4}
+.alert-info{background:#ebf8ff;color:#2a69ac;border:1px solid #bee3f8}
+.confirm-box{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px}
+.confirm-title{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+.confirm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.confirm-field span:first-child{color:#888;display:block;font-size:11px;margin-bottom:2px}
+.confirm-field span:last-child{color:#1a1a1a;font-weight:500;font-size:13px}
+.ot-result{font-size:32px;font-weight:600;letter-spacing:0.1em;color:#1a1a1a;padding:20px;text-align:center;border:1px solid #e0e0e0;border-radius:8px;background:#f9f9f9;margin-bottom:12px;font-family:monospace}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;color:#666;font-weight:500;border-bottom:1px solid #e0e0e0;font-size:12px;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#1a1a1a;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500}
+.badge-a{background:#EBF4FF;color:#1a56db}
+.badge-b{background:#F0FFF4;color:#276749}
+.badge-c{background:#FFF8F0;color:#c05621}
+.format-block{display:inline-flex;align-items:center;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:4px 10px;font-size:13px;gap:6px;margin:2px}
+.format-block .del{cursor:pointer;color:#aaa;font-size:11px;margin-left:4px}
+.format-block .del:hover{color:#e53e3e}
+.preview-ot{font-size:22px;font-weight:600;letter-spacing:0.06em;padding:10px 18px;border-radius:6px;background:#f5f5f5;display:inline-block;margin-top:8px;font-family:monospace}
+.section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#888;margin-bottom:10px;margin-top:20px}
+.section-title:first-child{margin-top:0}
+.flex{display:flex;gap:8px;align-items:flex-end}
+.flex>*{flex:1}
+.danger-zone{border:1px solid #fed7d7;border-radius:8px;padding:16px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px;color:#1a1a1a}
+.toggle-sub{font-size:11px;color:#888;margin-top:2px}
+.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d0d0d0;border-radius:20px;transition:.2s}
+.toggle-slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:#1a1a1a}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
+.sp-status{font-size:12px;padding:6px 12px;border-radius:6px;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px}
+.sp-ok{background:#f0fff4;color:#276749;border:1px solid #9ae6b4}
+.sp-err{background:#fff5f5;color:#c53030;border:1px solid #fed7d7}
+.sp-loading{background:#ebf8ff;color:#2a69ac;border:1px solid #bee3f8}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-ok{background:#38a169}
+.dot-err{background:#e53e3e}
+.dot-loading{background:#3182ce;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #d0d0d0;border-top-color:#1a1a1a;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+code{font-family:monospace;font-size:12px;background:#f0f0f0;padding:1px 5px;border-radius:3px}
+.search-wrap{position:relative}
+.search-wrap input{padding-left:32px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="app-header">
+  <span class="app-title" id="app-title-text">OT ManagerRV</span>
+  <span class="app-sub" id="app-sub-text">Sistema de generación de órdenes de trabajo</span>
+</div>
+
+<div id="sp-status-bar"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('generar',event)">Generar OT</button>
+  <button class="tab" onclick="showTab('skus',event)">Base de SKUs</button>
+  <button class="tab" onclick="showTab('registro',event)">Registro</button>
+  <button class="tab" onclick="showTab('editor',event)">Editor</button>
+</div>
+
+<!-- GENERAR OT -->
+<div id="tab-generar" class="panel active">
+  <div id="step-input">
+    <div class="card">
+      <label>SKU Epicor</label>
+      <input type="text" id="sku-input" placeholder="Ingresá el SKU Epicor" oninput="this.value=this.value.toUpperCase();document.getElementById('sku-alert').style.display='none'">
+      <label>Prefijo de la OT</label>
+      <select id="prefix-select"></select>
+      <div id="sku-alert" style="display:none"></div>
+      <button class="btn btn-primary" onclick="buscarSKU()" style="width:100%;margin-top:4px">Buscar SKU</button>
+    </div>
+  </div>
+  <div id="step-confirm" style="display:none">
+    <div class="card">
+      <div class="confirm-title">Confirmar datos del producto</div>
+      <div class="confirm-box">
+        <div class="confirm-grid" id="confirm-fields"></div>
+      </div>
+      <div class="alert alert-warn">¿Los datos son correctos? Revisá antes de continuar.</div>
+      <div class="flex" style="margin-top:12px">
+        <button class="btn" onclick="volver()">Volver</button>
+        <button class="btn btn-primary" id="btn-confirmar" onclick="confirmarOT()">Confirmar y generar OT</button>
+      </div>
+    </div>
+  </div>
+  <div id="step-result" style="display:none">
+    <div class="card" style="text-align:center">
+      <div style="font-size:12px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">OT generada</div>
+      <div class="ot-result" id="ot-result-num"></div>
+      <div id="ot-result-info" style="font-size:12px;color:#888;margin-bottom:16px"></div>
+      <button class="btn btn-primary" onclick="nuevaOT()" style="width:100%">Generar nueva OT</button>
+    </div>
+  </div>
+</div>
+
+<!-- BASE SKUs — solo lectura -->
+<div id="tab-skus" class="panel">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-size:14px;font-weight:500">Base de SKUs</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">Solo lectura — cargá y editá datos directamente desde la lista en SharePoint</div>
+      </div>
+      <button class="btn" onclick="cargarSKUs()" style="font-size:12px;white-space:nowrap">↻ Actualizar</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="sku-search" placeholder="Buscar por SKU, modelo, fabricante, color, descripción..." oninput="filtrarSKUs()" style="margin-bottom:0">
+    </div>
+  </div>
+  <div class="card" style="overflow-x:auto;padding:0">
+    <div id="skus-loading" style="text-align:center;padding:24px;color:#888;font-size:13px"><span class="spinner"></span>Cargando SKUs...</div>
+    <div id="skus-empty" style="display:none;text-align:center;padding:24px;color:#888;font-size:13px">No hay SKUs cargados aún. Agregá datos desde la lista en SharePoint.</div>
+    <div id="skus-no-results" style="display:none;text-align:center;padding:24px;color:#888;font-size:13px">No se encontraron resultados para esa búsqueda.</div>
+    <div style="padding:8px 12px;display:none" id="skus-count-bar"><span id="skus-count" style="font-size:12px;color:#888"></span></div>
+    <table id="sku-table" style="display:none">
+      <thead>
+        <tr>
+          <th>SKU Epicor</th><th>SKD CU Ref</th><th>Proyecto</th><th>Modelo MKT</th>
+          <th>Modelo Etiqueta</th><th>Fabricante</th><th>Customer</th>
+          <th>Color</th><th>Memoria</th><th>Descripción</th><th>OTs asignadas</th>
+        </tr>
+      </thead>
+      <tbody id="sku-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="tab-registro" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <span style="font-size:13px;color:#888" id="registro-count">0 órdenes registradas</span>
+    <button class="btn" onclick="exportarCSV()">Exportar CSV</button>
+  </div>
+  <div id="registro-loading" style="text-align:center;padding:24px;color:#888;font-size:13px"><span class="spinner"></span>Cargando registro...</div>
+  <div style="overflow-x:auto">
+    <table id="registro-table" style="display:none">
+      <thead id="registro-head"></thead>
+      <tbody id="registro-body"></tbody>
+    </table>
+  </div>
+  <div id="registro-empty" style="display:none;text-align:center;padding:2rem;color:#888;font-size:13px">No hay órdenes registradas aún</div>
+</div>
+
+<!-- EDITOR -->
+<div id="tab-editor" class="panel">
+  <div id="editor-lock" class="card" style="text-align:center;max-width:360px;margin:0 auto">
+    <div style="font-size:14px;color:#666;margin-bottom:12px">Acceso restringido — ingresá la contraseña de editor</div>
+    <input type="password" id="editor-pass" placeholder="Contraseña" style="width:200px;margin-bottom:12px;display:inline-block" onkeydown="if(event.key==='Enter')desbloquearEditor()">
+    <br><button class="btn btn-primary" onclick="desbloquearEditor()">Ingresar</button>
+    <div id="editor-pass-err" style="display:none;margin-top:8px" class="alert alert-err">Contraseña incorrecta</div>
+  </div>
+  <div id="editor-content" style="display:none">
+
+    <div class="card">
+      <div class="section-title">Título de la aplicación</div>
+      <div class="flex" style="max-width:560px">
+        <div><label>Título principal</label><input type="text" id="edit-title" value="OT ManagerRV" oninput="document.getElementById('app-title-text').textContent=this.value"></div>
+        <div><label>Subtítulo</label><input type="text" id="edit-sub" value="Sistema de generación de órdenes de trabajo" oninput="document.getElementById('app-sub-text').textContent=this.value"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Prefijos disponibles</div>
+      <div id="prefix-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+      <div class="flex" style="max-width:300px">
+        <input type="text" id="new-prefix" placeholder="Nueva letra (ej: D)" maxlength="3" style="margin-bottom:0" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn" onclick="agregarPrefijo()" style="flex:0;white-space:nowrap">Agregar</button>
+      </div>
+      <div id="prefix-alert" style="display:none;margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Constructor de formato de OT</div>
+      <div style="font-size:12px;color:#888;margin-bottom:10px">Armá el formato pieza por pieza. Vista previa en tiempo real.</div>
+      <div id="format-blocks" style="display:flex;flex-wrap:wrap;gap:4px;min-height:40px;margin-bottom:12px;padding:8px;border:1px dashed #d0d0d0;border-radius:6px;align-items:center"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn" style="font-size:12px" onclick="addBlock('fixed')">+ Texto fijo</button>
+        <button class="btn" style="font-size:12px" onclick="addBlock('prefix')">+ Prefijo</button>
+        <button class="btn" style="font-size:12px" onclick="addBlock('counter')">+ Contador</button>
+        <button class="btn" style="font-size:12px" onclick="addBlock('suffix')">+ Sufijo</button>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:4px">Vista previa:</div>
+      <div class="preview-ot" id="format-preview">—</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Visibilidad de campos — pantalla de confirmación</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Elegí qué campos ve el analista al confirmar el SKU.</div>
+      <div id="visibility-confirm"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Visibilidad de campos — registro de OTs</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Elegí qué columnas se muestran en la tabla de registro.</div>
+      <div id="visibility-registro"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Conexión SharePoint</div>
+      <div style="font-size:12px;color:#888;margin-bottom:10px">URL base del sitio donde están las listas.</div>
+      <label>URL del sitio</label>
+      <input type="text" id="sp-site-url" placeholder="https://radiovictoria1.sharepoint.com/teams/ING_CEL">
+      <button class="btn btn-primary" onclick="guardarConfigSP()">Guardar y reconectar</button>
+    </div>
+
+    <div class="danger-zone">
+      <div class="section-title" style="color:#e53e3e">Zona de riesgo</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger" onclick="resetRegistro()">Limpiar registro local</button>
+        <button class="btn btn-danger" onclick="resetContadores()">Resetear contadores</button>
+      </div>
+    </div>
+
+    <button class="btn" style="margin-top:16px" onclick="bloquearEditor()">Cerrar panel editor</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN
+// ============================================================
+const CONFIG = {
+  spSiteUrl: 'https://radiovictoria1.sharepoint.com/teams/ING_CEL', // ← reemplazá con tu URL real
+  listaSKUs:     'OTManager_SKUs',
+  listaRegistro: 'OTManager_RegistroOT',
+  listaConfig:   'OTManager_Configuracion',
+  editorPass:    'editor2024'
+};
+
+// Mapeo campo app → nombre columna SharePoint (exacto, con espacios si los tiene)
+const SKU_FIELDS = [
+  {key:'skuEpicor',   label:'SKU Epicor',       spField:'Title'},
+  {key:'skdCuRef',    label:'SKD CU Ref',        spField:'SKD_x0020_CU_x0020_Ref'},
+  {key:'proyecto',    label:'Proyecto',           spField:'Proyecto'},
+  {key:'modeloMkt',   label:'Modelo MKT',         spField:'Modelo_x0020_MKT'},
+  {key:'modeloEtiq',  label:'Modelo Etiqueta',    spField:'Modelo_x0020_Etiqueta'},
+  {key:'fabricante',  label:'Fabricante',          spField:'Fabricante'},
+  {key:'customer',    label:'Customer',            spField:'Customer'},
+  {key:'color',       label:'Color',               spField:'Color'},
+  {key:'memoria',     label:'Memoria',             spField:'Memoria'},
+  {key:'descripcion', label:'Descripción',         spField:'Descripcion'},
+];
+
+const REG_COLS = [
+  {key:'ot',         label:'OT'},
+  {key:'skuEpicor',  label:'SKU Epicor'},
+  {key:'skdCuRef',   label:'SKD CU Ref'},
+  {key:'fabricante', label:'Fabricante'},
+  {key:'color',      label:'Color'},
+  {key:'memoria',    label:'Memoria'},
+  {key:'prefijo',    label:'Prefijo'},
+  {key:'fecha',      label:'Fecha y hora'},
+];
+
+// ============================================================
+// ESTADO
+// ============================================================
+let state = {
+  skus: [],
+  prefijos: ['A','B','C'],
+  contadores: {A:0,B:0,C:0},
+  otAsignadas: {},
+  registro: [],
+  visConfirm: {skdCuRef:true,memoria:true,color:true,fabricante:true,descripcion:true,
+               proyecto:false,modeloMkt:false,modeloEtiq:false,customer:false},
+  visRegistro: {ot:true,skuEpicor:true,skdCuRef:true,fabricante:true,color:true,memoria:true,prefijo:true,fecha:true},
+  formato: [{tipo:'prefix'},{tipo:'counter',digitos:4},{tipo:'suffix',valor:'01'}],
+  spConnected: false
+};
+
+let pendingSKU = null;
+let requestDigest = null;
+let skusFiltrados = [];
+
+// ============================================================
+// SHAREPOINT API
+// ============================================================
+function spUrl(path){ return `${CONFIG.spSiteUrl}/_api/${path}`; }
+
+async function getDigest(){
+  try{
+    const r = await fetch(spUrl('contextinfo'),{method:'POST',headers:{'Accept':'application/json;odata=nometadata','Content-Type':'application/json;odata=nometadata'}});
+    if(r.ok){ const d=await r.json(); requestDigest=d.FormDigestValue; }
+  }catch(e){ console.warn('Digest error',e); }
+}
+
+async function spGet(list, filter='', select=''){
+  let url = spUrl(`web/lists/getbytitle('${list}')/items?$top=5000`);
+  if(select) url+=`&$select=${select}`;
+  if(filter) url+=`&$filter=${filter}`;
+  const r = await fetch(url,{headers:{'Accept':'application/json;odata=nometadata'}});
+  if(!r.ok) throw new Error(`SP GET ${r.status}`);
+  return (await r.json()).value;
+}
+
+async function spPost(list, body){
+  await getDigest();
+  const r = await fetch(spUrl(`web/lists/getbytitle('${list}')/items`),{
+    method:'POST',
+    headers:{'Accept':'application/json;odata=nometadata','Content-Type':'application/json;odata=nometadata','X-RequestDigest':requestDigest},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){ const t=await r.text(); throw new Error(`SP POST ${r.status}: ${t}`); }
+  return await r.json();
+}
+
+async function spMerge(list, id, body){
+  await getDigest();
+  await fetch(spUrl(`web/lists/getbytitle('${list}')/items(${id})`),{
+    method:'POST',
+    headers:{'Accept':'application/json;odata=nometadata','Content-Type':'application/json;odata=nometadata',
+              'X-RequestDigest':requestDigest,'X-HTTP-Method':'MERGE','IF-MATCH':'*'},
+    body:JSON.stringify(body)
+  });
+}
+
+async function spGetConfig(clave){
+  try{
+    const items = await spGet(CONFIG.listaConfig,`Title eq '${clave}'`,'Title,Valor');
+    return items.length ? JSON.parse(items[0].Valor) : null;
+  }catch(e){ return null; }
+}
+
+async function spSetConfig(clave, valor){
+  try{
+    const items = await spGet(CONFIG.listaConfig,`Title eq '${clave}'`,'Id,Title');
+    const body = {Title:clave, Valor:JSON.stringify(valor)};
+    if(items.length) await spMerge(CONFIG.listaConfig, items[0].Id, body);
+    else await spPost(CONFIG.listaConfig, body);
+  }catch(e){ console.warn('Config save error',e); }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  setSpStatus('loading','Conectando con SharePoint...');
+  try{
+    const cfg = await spGetConfig('appConfig');
+    if(cfg){
+      if(cfg.prefijos)    state.prefijos    = cfg.prefijos;
+      if(cfg.contadores)  state.contadores  = cfg.contadores;
+      if(cfg.otAsignadas) state.otAsignadas = cfg.otAsignadas;
+      if(cfg.visConfirm)  state.visConfirm  = cfg.visConfirm;
+      if(cfg.visRegistro) state.visRegistro = cfg.visRegistro;
+      if(cfg.formato)     state.formato     = cfg.formato;
+    }
+    await cargarSKUs();
+    state.spConnected = true;
+    setSpStatus('ok','Conectado a SharePoint');
+  }catch(e){
+    state.spConnected = false;
+    setSpStatus('err','Sin conexión a SharePoint — verificá la URL en el panel Editor');
+    console.warn('SP init error:',e);
+    document.getElementById('skus-loading').style.display='none';
+    document.getElementById('skus-empty').style.display='block';
+  }
+  renderPrefixSelect();
+}
+
+function setSpStatus(type,msg){
+  const el=document.getElementById('sp-status-bar');
+  const dot=type==='ok'?'dot-ok':type==='err'?'dot-err':'dot-loading';
+  const cls=type==='ok'?'sp-ok':type==='err'?'sp-err':'sp-loading';
+  el.innerHTML=`<span class="sp-status ${cls}"><span class="dot ${dot}"></span>${msg}</span>`;
+}
+
+// ============================================================
+// SKUS
+// ============================================================
+async function cargarSKUs(){
+  document.getElementById('skus-loading').style.display='block';
+  document.getElementById('sku-table').style.display='none';
+  document.getElementById('skus-empty').style.display='none';
+
+  const selectFields = SKU_FIELDS.map(f=>f.spField).join(',') + ',Id';
+  const items = await spGet(CONFIG.listaSKUs,'',selectFields);
+
+  state.skus = items.map(i=>({
+    id:          i.Id,
+    skuEpicor:   i.Title||'',
+    skdCuRef:    i['SKD_x0020_CU_x0020_Ref']||'',
+    proyecto:    i.Proyecto||'',
+    modeloMkt:   i['Modelo_x0020_MKT']||'',
+    modeloEtiq:  i['Modelo_x0020_Etiqueta']||'',
+    fabricante:  i.Fabricante||'',
+    customer:    i.Customer||'',
+    color:       i.Color||'',
+    memoria:     i.Memoria||'',
+    descripcion: i.Descripcion||''
+  }));
+
+  skusFiltrados = [...state.skus];
+  document.getElementById('skus-loading').style.display='none';
+
+  if(state.skus.length===0){
+    document.getElementById('skus-empty').style.display='block';
+  } else {
+    document.getElementById('sku-table').style.display='table';
+    document.getElementById('skus-count-bar').style.display='block';
+    renderSKUTable(skusFiltrados);
+  }
+}
+
+function filtrarSKUs(){
+  const q = document.getElementById('sku-search').value.toLowerCase().trim();
+  skusFiltrados = q
+    ? state.skus.filter(s=>
+        Object.values(s).some(v=>String(v).toLowerCase().includes(q))
+      )
+    : [...state.skus];
+
+  document.getElementById('skus-no-results').style.display = skusFiltrados.length===0 && q ? 'block':'none';
+  document.getElementById('sku-table').style.display = skusFiltrados.length>0 ? 'table':'none';
+  renderSKUTable(skusFiltrados);
+}
+
+function renderSKUTable(lista){
+  const tbody = document.getElementById('sku-table-body');
+  document.getElementById('skus-count').textContent = `${lista.length} SKU${lista.length!==1?'s':''} encontrado${lista.length!==1?'s':''}`;
+  const cls = {A:'badge-a',B:'badge-b',C:'badge-c'};
+  tbody.innerHTML = lista.map(s=>{
+    const asignadas = state.prefijos.filter(p=>state.otAsignadas[otKey(s.skuEpicor,p)]);
+    const badges = asignadas.length
+      ? asignadas.map(p=>`<span class="badge ${cls[p]||'badge-a'}">${state.otAsignadas[otKey(s.skuEpicor,p)]}</span>`).join(' ')
+      : '—';
+    return `<tr>
+      <td><code>${s.skuEpicor}</code></td>
+      <td>${s.skdCuRef||'—'}</td>
+      <td>${s.proyecto||'—'}</td>
+      <td>${s.modeloMkt||'—'}</td>
+      <td>${s.modeloEtiq||'—'}</td>
+      <td>${s.fabricante||'—'}</td>
+      <td>${s.customer||'—'}</td>
+      <td>${s.color||'—'}</td>
+      <td>${s.memoria||'—'}</td>
+      <td>${s.descripcion||'—'}</td>
+      <td>${badges}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// GENERAR OT
+// ============================================================
+function otKey(sku,pref){ return sku+'|'+pref; }
+
+function buildOT(pref,n){
+  return state.formato.map(b=>{
+    if(b.tipo==='prefix')  return pref;
+    if(b.tipo==='counter') return String(n).padStart(b.digitos||4,'0');
+    if(b.tipo==='fixed'||b.tipo==='suffix') return b.valor||'';
+    return '';
+  }).join('');
+}
+
+function previewOT(){
+  const p = state.prefijos[0]||'A';
+  const s = state.formato.map(b=>{
+    if(b.tipo==='prefix')  return p;
+    if(b.tipo==='counter') return '1'.padStart(b.digitos||4,'0');
+    if(b.tipo==='fixed'||b.tipo==='suffix') return b.valor||'?';
+    return '';
+  }).join('');
+  document.getElementById('format-preview').textContent = s||'—';
+}
+
+function buscarSKU(){
+  const sku = document.getElementById('sku-input').value.trim();
+  const pref = document.getElementById('prefix-select').value;
+  const alertEl = document.getElementById('sku-alert');
+  alertEl.style.display='none';
+  if(!sku){ setAlert(alertEl,'err','Ingresá el SKU Epicor'); return; }
+  const key = otKey(sku,pref);
+  if(state.otAsignadas[key]){
+    setAlert(alertEl,'warn',`Este SKU ya tiene una OT para el prefijo <strong>${pref}</strong>: <strong>${state.otAsignadas[key]}</strong>. El analista continúa de 5 en 5 manualmente.`);
+    return;
+  }
+  const found = state.skus.find(s=>s.skuEpicor===sku);
+  if(!found){ setAlert(alertEl,'err','SKU Epicor no encontrado en la base de datos'); return; }
+  pendingSKU = {...found, prefijo:pref};
+  document.getElementById('step-input').style.display='none';
+  document.getElementById('step-confirm').style.display='block';
+  const grid = document.getElementById('confirm-fields');
+  grid.innerHTML='';
+  SKU_FIELDS.filter(f=>f.key!=='skuEpicor').forEach(f=>{
+    if(state.visConfirm[f.key])
+      grid.innerHTML+=`<div class="confirm-field"><span>${f.label}</span><span>${found[f.key]||'—'}</span></div>`;
+  });
+  grid.innerHTML+=`<div class="confirm-field"><span>Prefijo OT</span><span>${pref}</span></div>`;
+}
+
+async function confirmarOT(){
+  if(!pendingSKU) return;
+  const btn = document.getElementById('btn-confirmar');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Generando...';
+  try{
+    state.contadores[pendingSKU.prefijo] = (state.contadores[pendingSKU.prefijo]||0)+1;
+    const n = state.contadores[pendingSKU.prefijo];
+    const ot = buildOT(pendingSKU.prefijo, n);
+    const key = otKey(pendingSKU.skuEpicor, pendingSKU.prefijo);
+    state.otAsignadas[key] = ot;
+    const now = new Date();
+
+    if(state.spConnected){
+      await spPost(CONFIG.listaRegistro,{
+        Title:     ot,
+        SKUEpicor: pendingSKU.skuEpicor,
+        SKDCURef:  pendingSKU.skdCuRef,
+        Fabricante:pendingSKU.fabricante,
+        Color:     pendingSKU.color,
+        Memoria:   pendingSKU.memoria,
+        Prefijo:   pendingSKU.prefijo,
+        Fecha:     now.toISOString()
+      });
+      await guardarConfigEnSP();
+    }
+
+    state.registro.unshift({
+      ot, skuEpicor:pendingSKU.skuEpicor, skdCuRef:pendingSKU.skdCuRef,
+      fabricante:pendingSKU.fabricante, color:pendingSKU.color,
+      memoria:pendingSKU.memoria, prefijo:pendingSKU.prefijo,
+      fecha:now.toLocaleString('es-AR')
+    });
+
+    document.getElementById('ot-result-num').textContent = ot;
+    document.getElementById('ot-result-info').textContent = `SKU: ${pendingSKU.skuEpicor} · Prefijo: ${pendingSKU.prefijo} · ${now.toLocaleString('es-AR')}`;
+    document.getElementById('step-confirm').style.display='none';
+    document.getElementById('step-result').style.display='block';
+    renderSKUTable(skusFiltrados);
+    renderRegistro();
+  }catch(e){
+    alert('Error al guardar la OT: '+e.message);
+    state.contadores[pendingSKU.prefijo]--;
+    delete state.otAsignadas[otKey(pendingSKU.skuEpicor,pendingSKU.prefijo)];
+  }
+  btn.disabled=false; btn.innerHTML='Confirmar y generar OT';
+}
+
+function volver(){
+  document.getElementById('step-confirm').style.display='none';
+  document.getElementById('step-input').style.display='block';
+}
+
+function nuevaOT(){
+  document.getElementById('step-result').style.display='none';
+  document.getElementById('step-input').style.display='block';
+  document.getElementById('sku-input').value='';
+  document.getElementById('sku-alert').style.display='none';
+  pendingSKU=null;
+}
+
+// ============================================================
+// REGISTRO
+// ============================================================
+async function cargarRegistro(){
+  document.getElementById('registro-loading').style.display='block';
+  document.getElementById('registro-table').style.display='none';
+  document.getElementById('registro-empty').style.display='none';
+  try{
+    const items = await spGet(CONFIG.listaRegistro,'','Title,SKUEpicor,SKDCURef,Fabricante,Color,Memoria,Prefijo,Fecha,Id');
+    state.registro = items.map(i=>({
+      id:i.Id, ot:i.Title||'', skuEpicor:i.SKUEpicor||'',
+      skdCuRef:i.SKDCURef||'', fabricante:i.Fabricante||'',
+      color:i.Color||'', memoria:i.Memoria||'', prefijo:i.Prefijo||'',
+      fecha: i.Fecha ? new Date(i.Fecha).toLocaleString('es-AR') : ''
+    })).sort((a,b)=>b.id-a.id);
+  }catch(e){ console.warn('Registro load error',e); }
+  document.getElementById('registro-loading').style.display='none';
+  renderRegistro();
+}
+
+function renderRegistro(){
+  const head  = document.getElementById('registro-head');
+  const tbody = document.getElementById('registro-body');
+  const empty = document.getElementById('registro-empty');
+  const table = document.getElementById('registro-table');
+  document.getElementById('registro-count').textContent = state.registro.length+' órdenes registradas';
+  const visCols = REG_COLS.filter(c=>state.visRegistro[c.key]!==false);
+  head.innerHTML = '<tr>'+visCols.map(c=>`<th>${c.label}</th>`).join('')+'</tr>';
+  if(!state.registro.length){ table.style.display='none'; empty.style.display='block'; return; }
+  empty.style.display='none'; table.style.display='table';
+  const cls={A:'badge-a',B:'badge-b',C:'badge-c'};
+  tbody.innerHTML = state.registro.map(r=>'<tr>'+visCols.map(c=>{
+    if(c.key==='ot')        return `<td><strong>${r.ot}</strong></td>`;
+    if(c.key==='skuEpicor') return `<td><code>${r.skuEpicor}</code></td>`;
+    if(c.key==='prefijo')   return `<td><span class="badge ${cls[r.prefijo]||'badge-a'}">${r.prefijo}</span></td>`;
+    if(c.key==='fecha')     return `<td style="font-size:12px;color:#888">${r.fecha}</td>`;
+    return `<td>${r[c.key]||'—'}</td>`;
+  }).join('')+'</tr>').join('');
+}
+
+function exportarCSV(){
+  if(!state.registro.length) return;
+  const visCols = REG_COLS.filter(c=>state.visRegistro[c.key]!==false);
+  const csv = [visCols.map(c=>c.label).join(','),
+    ...state.registro.map(r=>visCols.map(c=>r[c.key]||'').join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='registro_ot.csv'; a.click();
+}
+
+// ============================================================
+// EDITOR
+// ============================================================
+function setAlert(el,type,msg){ el.className='alert alert-'+type; el.innerHTML=msg; el.style.display='block'; }
+
+function showTab(name,e){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(e) e.target.classList.add('active');
+  if(name==='skus')    cargarSKUs();
+  if(name==='registro') cargarRegistro();
+  if(name==='editor'){ renderVisibilityToggles(); renderFormatBlocks(); renderPrefixList();
+    document.getElementById('sp-site-url').value=CONFIG.spSiteUrl; }
+}
+
+function renderPrefixSelect(){
+  document.getElementById('prefix-select').innerHTML =
+    state.prefijos.map(p=>`<option value="${p}">${p}</option>`).join('');
+}
+
+function desbloquearEditor(){
+  if(document.getElementById('editor-pass').value===CONFIG.editorPass){
+    document.getElementById('editor-lock').style.display='none';
+    document.getElementById('editor-content').style.display='block';
+    renderPrefixList(); renderVisibilityToggles(); renderFormatBlocks();
+    document.getElementById('sp-site-url').value=CONFIG.spSiteUrl;
+  } else {
+    document.getElementById('editor-pass-err').style.display='block';
+  }
+}
+
+function bloquearEditor(){
+  document.getElementById('editor-lock').style.display='block';
+  document.getElementById('editor-content').style.display='none';
+  document.getElementById('editor-pass').value='';
+  document.getElementById('editor-pass-err').style.display='none';
+}
+
+function renderPrefixList(){
+  document.getElementById('prefix-list').innerHTML =
+    state.prefijos.map(p=>`<div class="format-block">${p}<span class="del" onclick="eliminarPrefijo('${p}')">✕</span></div>`).join('');
+  renderPrefixSelect();
+}
+
+async function agregarPrefijo(){
+  const val=document.getElementById('new-prefix').value.trim().toUpperCase();
+  const alertEl=document.getElementById('prefix-alert');
+  if(!val){ setAlert(alertEl,'err','Ingresá una letra o código'); return; }
+  if(state.prefijos.includes(val)){ setAlert(alertEl,'warn','Ese prefijo ya existe'); return; }
+  state.prefijos.push(val); state.contadores[val]=0;
+  document.getElementById('new-prefix').value=''; alertEl.style.display='none';
+  renderPrefixList(); await guardarConfigEnSP();
+}
+
+async function eliminarPrefijo(p){
+  if(state.prefijos.length<=1){ alert('Debe haber al menos un prefijo'); return; }
+  if(state.registro.some(r=>r.prefijo===p)){ alert('Este prefijo tiene OTs registradas y no puede eliminarse'); return; }
+  state.prefijos=state.prefijos.filter(x=>x!==p);
+  renderPrefixList(); await guardarConfigEnSP();
+}
+
+function renderFormatBlocks(){
+  const el=document.getElementById('format-blocks');
+  el.innerHTML=state.formato.map((b,i)=>{
+    let label='';
+    if(b.tipo==='fixed')   label=`Fijo: <input type="text" value="${b.valor||''}" oninput="state.formato[${i}].valor=this.value;previewOT()" style="width:60px;padding:2px 6px;height:24px;font-size:12px;margin:0;display:inline-block">`;
+    if(b.tipo==='prefix')  label='Prefijo';
+    if(b.tipo==='counter') label=`Contador <input type="number" min="1" max="8" value="${b.digitos||4}" oninput="state.formato[${i}].digitos=+this.value;previewOT()" style="width:40px;padding:2px 4px;height:24px;font-size:12px;margin:0;display:inline-block"> dígitos`;
+    if(b.tipo==='suffix')  label=`Sufijo: <input type="text" value="${b.valor||''}" oninput="state.formato[${i}].valor=this.value;previewOT()" style="width:50px;padding:2px 6px;height:24px;font-size:12px;margin:0;display:inline-block">`;
+    return `<div class="format-block">${label}<span class="del" onclick="removeBlock(${i})">✕</span></div>`;
+  }).join('');
+  previewOT();
+}
+
+function addBlock(tipo){
+  const d={fixed:{tipo:'fixed',valor:'CEL'},prefix:{tipo:'prefix'},counter:{tipo:'counter',digitos:4},suffix:{tipo:'suffix',valor:'01'}};
+  state.formato.push({...d[tipo]}); renderFormatBlocks();
+}
+function removeBlock(i){ state.formato.splice(i,1); renderFormatBlocks(); }
+
+function renderVisibilityToggles(){
+  document.getElementById('visibility-confirm').innerHTML =
+    SKU_FIELDS.filter(f=>f.key!=='skuEpicor').map(f=>`
+      <div class="toggle-row">
+        <div><div class="toggle-label">${f.label}</div><div class="toggle-sub">Pantalla de confirmación del SKU</div></div>
+        <label class="toggle"><input type="checkbox" ${state.visConfirm[f.key]?'checked':''} onchange="state.visConfirm['${f.key}']=this.checked;guardarConfigEnSP()"><span class="toggle-slider"></span></label>
+      </div>`).join('');
+  document.getElementById('visibility-registro').innerHTML =
+    REG_COLS.map(c=>`
+      <div class="toggle-row">
+        <div><div class="toggle-label">${c.label}</div><div class="toggle-sub">Columna del registro de OTs</div></div>
+        <label class="toggle"><input type="checkbox" ${state.visRegistro[c.key]!==false?'checked':''} onchange="state.visRegistro['${c.key}']=this.checked;renderRegistro();guardarConfigEnSP()"><span class="toggle-slider"></span></label>
+      </div>`).join('');
+}
+
+async function guardarConfigEnSP(){
+  if(!state.spConnected) return;
+  await spSetConfig('appConfig',{
+    prefijos:state.prefijos, contadores:state.contadores,
+    otAsignadas:state.otAsignadas, visConfirm:state.visConfirm,
+    visRegistro:state.visRegistro, formato:state.formato
+  });
+}
+
+function guardarConfigSP(){
+  const url=document.getElementById('sp-site-url').value.trim();
+  if(!url){ alert('Ingresá una URL válida'); return; }
+  CONFIG.spSiteUrl=url; requestDigest=null; init();
+}
+
+async function resetRegistro(){
+  if(!confirm('¿Seguro que querés limpiar el registro local y los contadores?')) return;
+  state.registro=[]; state.otAsignadas={};
+  renderRegistro(); renderSKUTable(skusFiltrados);
+  await guardarConfigEnSP();
+}
+
+async function resetContadores(){
+  if(!confirm('¿Seguro que querés resetear los contadores?')) return;
+  state.prefijos.forEach(p=>state.contadores[p]=0);
+  await guardarConfigEnSP();
+}
+
+// ============================================================
+// ARRANQUE
+// ============================================================
+renderPrefixSelect();
+init();
+</script>
+</body>
+</html>
